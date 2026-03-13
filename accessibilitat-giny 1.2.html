@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giny d'Accessibilitat – BDNMaker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --bg: #ffffff;
+    --surface: #f1f3f4;
+    --border: #dadce0;
+    --text: #202124;
+    --text-muted: #5f6368;
+    --active-bg: #1a73e8;
+    --active-text: #ffffff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.13);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'Nunito', sans-serif;
+    background: transparent;
+    width: 100%;
+  }
+
+  #a11y-bar {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  #bar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  #bar-header:hover { background: var(--primary-dark); }
+  #bar-header .bar-icon  { font-size: 20px; flex-shrink: 0; }
+  #bar-header .bar-title { font-size: 14px; font-weight: 800; flex: 1; }
+  #bar-header .bar-sub   { font-size: 11px; opacity: 0.8; }
+  #bar-chevron { font-size: 13px; transition: transform 0.25s; margin-left: 6px; }
+  #a11y-bar.collapsed #bar-chevron { transform: rotate(-90deg); }
+
+  #bar-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.25s;
+    max-height: 500px;
+    opacity: 1;
+  }
+  #a11y-bar.collapsed #bar-content { max-height: 0; opacity: 0; }
+
+  #btn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    align-items: stretch;
+  }
+
+  .a11y-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 10px;
+    min-width: 68px;
+    flex: 1 1 68px;
+    border-radius: 9px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-align: center;
+    color: var(--text);
+    user-select: none;
+    position: relative;
+  }
+  .a11y-btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-1px); }
+  .a11y-btn.active {
+    background: var(--active-bg);
+    border-color: var(--active-bg);
+    color: var(--active-text);
+    box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+  }
+  .btn-icon  { font-size: 19px; line-height: 1; }
+  .btn-label { font-size: 10px; font-weight: 700; line-height: 1.2; }
+  .btn-badge {
+    position: absolute;
+    top: 3px; right: 4px;
+    font-size: 8px; font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.1);
+    color: inherit; line-height: 1.5;
+  }
+  .a11y-btn.active .btn-badge { background: rgba(255,255,255,0.28); }
+
+  .btn-sep {
+    width: 1px; align-self: stretch;
+    background: var(--border);
+    margin: 4px 2px; flex-shrink: 0;
+  }
+
+  #big-reset-btn {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; padding: 8px 10px;
+    min-width: 68px; flex: 1 1 68px;
+    border-radius: 9px;
+    border: 1.5px solid #d93025;
+    background: #fff0ef; color: #d93025;
+    cursor: pointer; font-family: inherit;
+    font-size: 10px; font-weight: 800;
+    transition: all 0.18s; text-align: center;
+  }
+  #big-reset-btn:hover { background: #d93025; color: #fff; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(217,48,37,0.3); }
+  #big-reset-btn .reset-icon { font-size: 19px; line-height: 1; transition: transform 0.4s; }
+  #big-reset-btn:hover .reset-icon { transform: rotate(-180deg); }
+  #big-reset-btn.done { background: #34a853; border-color: #34a853; color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="a11y-bar">
+  <div id="bar-header" onclick="toggleBar()" role="button" aria-expanded="true" aria-controls="bar-content">
+    <span class="bar-icon">🧏</span>
+    <span class="bar-title">Accessibilitat</span>
+    <span class="bar-sub">Personalitza la lectura</span>
+    <span id="bar-chevron">▾</span>
+  </div>
+
+  <div id="bar-content">
+    <div id="btn-grid">
+
+      <button class="a11y-btn" id="btn-dyslexia" onclick="toggleDyslexia()" title="Font per a dislèxia">
+        <span class="btn-icon">🅰</span>
+        <span class="btn-label">Dislèxia</span>
+        <span class="btn-badge" id="badge-dyslexia">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-textsize" onclick="cycleTextSize()" title="Mida del text (5 nivells)">
+        <span class="btn-icon">🔤</span>
+        <span class="btn-label">Text</span>
+        <span class="btn-badge" id="badge-textsize">0/5</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-spacing" onclick="cycleSpacing()" title="Espaiat de text">
+        <span class="btn-icon">↔</span>
+        <span class="btn-label">Espaiat</span>
+        <span class="btn-badge" id="badge-spacing">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-lineheight" onclick="cycleLineHeight()" title="Interlineat">
+        <span class="btn-icon">☰</span>
+        <span class="btn-label">Interlineat</span>
+        <span class="btn-badge" id="badge-lineheight">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-align" onclick="cycleAlign()" title="Alineació del text">
+        <span class="btn-icon">≡</span>
+        <span class="btn-label">Alineació</span>
+        <span class="btn-badge" id="badge-align">Off</span>
+      </button>
+
+      <div class="btn-sep"></div>
+
+      <button class="a11y-btn" id="btn-contrast" onclick="cycleContrast()" title="Contrast">
+        <span class="btn-icon">◑</span>
+        <span class="btn-label">Contrast</span>
+        <span class="btn-badge" id="badge-contrast">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-saturation" onclick="cycleSaturation()" title="Saturació">
+        <span class="btn-icon">🎨</span>
+        <span class="btn-label">Saturació</span>
+        <span class="btn-badge" id="badge-saturation">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-links" onclick="toggleLinks()" title="Realçar enllaços">
+        <span class="btn-icon">🔗</span>
+        <span class="btn-label">Enllaços</span>
+        <span class="btn-badge" id="badge-links">Off</span>
+      </button>
+
+      <div class="btn-sep"></div>
+
+      <button class="a11y-btn" id="btn-images" onclick="toggleImages()" title="Ocultar imatges">
+        <span class="btn-icon">🖼</span>
+        <span class="btn-label">Imatges</span>
+        <span class="btn-badge" id="badge-images">Off</span>
+      </button>
+
+      <button class="a11y-btn" id="btn-anim" onclick="toggleAnimations()" title="Aturar animacions">
+        <span class="btn-icon">🎬</span>
+        <span class="btn-label">Animacions</span>
+        <span class="btn-badge" id="badge-anim">Off</span>
+      </button>
+
+      <div class="btn-sep"></div>
+
+      <button class="a11y-btn" id="btn-cursor" onclick="cycleCursor()" title="Ajudes de navegació">
+        <span class="btn-icon">🖱</span>
+        <span class="btn-label">Navegació</span>
+        <span class="btn-badge" id="badge-cursor">Off</span>
+      </button>
+
+      <div class="btn-sep"></div>
+
+      <button id="big-reset-btn" onclick="resetAll()" title="Restablir totes les opcions">
+        <span class="reset-icon">↺</span>
+        <span>Restablir</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<div id="reading-mask-top" style="display:none;position:fixed;top:0;left:0;width:100%;background:rgba(0,0,0,0.55);z-index:9990;pointer-events:none;"></div>
+<div id="reading-mask-bot" style="display:none;position:fixed;left:0;width:100%;background:rgba(0,0,0,0.55);z-index:9990;pointer-events:none;"></div>
+<div id="reading-guide" style="display:none;position:fixed;left:0;width:100%;height:3px;background:rgba(26,115,232,0.7);z-index:9991;pointer-events:none;box-shadow:0 0 8px rgba(26,115,232,0.5);"></div>
+
+<script>
+function toggleBar() {
+  const bar = document.getElementById('a11y-bar');
+  bar.classList.toggle('collapsed');
+  document.getElementById('bar-header').setAttribute('aria-expanded', !bar.classList.contains('collapsed'));
+}
+
+const state = {
+  dyslexia:false, textSize:0, spacing:0, lineHeight:0, align:0,
+  contrast:0, saturation:0, links:false, images:false, animations:false, cursor:0
+};
+
+const styleEl = document.createElement('style');
+document.head.appendChild(styleEl);
+
+function applyStyles() {
+  let css = '';
+  if (state.dyslexia)
+    css += "@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap'); body,*{font-family:'Atkinson Hyperlegible',Arial,sans-serif !important;}";
+  const sizes=[0,10,20,30,40,50];
+  if (state.textSize>0) css+=`body,p,span,li,td,th,div,a,h1,h2,h3,h4,h5,h6{font-size:calc(1em + ${sizes[state.textSize]}%) !important;}`;
+  const sp=[null,'0.05em','0.1em','0.18em'];
+  if (state.spacing>0) css+=`body,p,span,li,a,div{letter-spacing:${sp[state.spacing]} !important;word-spacing:calc(${sp[state.spacing]} * 2) !important;}`;
+  const lh=[null,'1.5','1.75','2'];
+  if (state.lineHeight>0) css+=`body,p,span,li,a,div{line-height:${lh[state.lineHeight]} !important;}`;
+  const al=[null,'left','right','center','justify'];
+  if (state.align>0) css+=`body,p,li,td,div{text-align:${al[state.align]} !important;}`;
+  const cv=['','invert(1) hue-rotate(180deg)','brightness(0.2) contrast(1.8)','brightness(1.15) contrast(1.5)'];
+  const sv=['','saturate(0.3)','saturate(3)','grayscale(1)'];
+  const cf=cv[state.contrast], sf=sv[state.saturation];
+  if (cf||sf) { css+=`html{filter:${[cf,sf].filter(Boolean).join(' ')} !important;}`; if(state.contrast===1) css+=`img,video{filter:invert(1) hue-rotate(180deg) !important;}`; }
+  if (state.links) css+=`a{background:#ffeb3b !important;color:#000 !important;text-decoration:underline !important;outline:2px solid #f57f17 !important;padding:1px 3px !important;border-radius:3px !important;}`;
+  if (state.images) css+=`img,video,figure,[role="img"]{visibility:hidden !important;}`;
+  if (state.animations) css+=`*,*::before,*::after{animation:none !important;transition:none !important;}`;
+  styleEl.textContent = css;
+}
+
+function setActive(id,v){ document.getElementById(id).classList.toggle('active',v); }
+function setBadge(id,t) { document.getElementById(id).textContent=t; }
+
+function toggleDyslexia(){ state.dyslexia=!state.dyslexia; setActive('btn-dyslexia',state.dyslexia); setBadge('badge-dyslexia',state.dyslexia?'On':'Off'); applyStyles(); }
+function cycleTextSize(){ state.textSize=(state.textSize+1)%6; setBadge('badge-textsize',state.textSize+'/5'); setActive('btn-textsize',state.textSize>0); applyStyles(); }
+function cycleSpacing(){ state.spacing=(state.spacing+1)%4; setBadge('badge-spacing',['Off','Lleu','Mod','Pes'][state.spacing]); setActive('btn-spacing',state.spacing>0); applyStyles(); }
+function cycleLineHeight(){ state.lineHeight=(state.lineHeight+1)%4; setBadge('badge-lineheight',['Off','1.5','1.75','2.0'][state.lineHeight]); setActive('btn-lineheight',state.lineHeight>0); applyStyles(); }
+function cycleAlign(){ state.align=(state.align+1)%5; setBadge('badge-align',['Off','←Esq','Dre→','Cen','Just'][state.align]); setActive('btn-align',state.align>0); applyStyles(); }
+function cycleContrast(){ state.contrast=(state.contrast+1)%4; setBadge('badge-contrast',['Off','Inv','Fosc','Clar'][state.contrast]); setActive('btn-contrast',state.contrast>0); applyStyles(); }
+function cycleSaturation(){ state.saturation=(state.saturation+1)%4; setBadge('badge-saturation',['Off','Baixa','Alta','Cap'][state.saturation]); setActive('btn-saturation',state.saturation>0); applyStyles(); }
+function toggleLinks(){ state.links=!state.links; setActive('btn-links',state.links); setBadge('badge-links',state.links?'On':'Off'); applyStyles(); }
+function toggleImages(){ state.images=!state.images; setActive('btn-images',state.images); setBadge('badge-images',state.images?'On':'Off'); applyStyles(); }
+function toggleAnimations(){ state.animations=!state.animations; setActive('btn-anim',state.animations); setBadge('badge-anim',state.animations?'On':'Off'); applyStyles(); }
+
+const maskTop=document.getElementById('reading-mask-top');
+const maskBot=document.getElementById('reading-mask-bot');
+const guide=document.getElementById('reading-guide');
+const MASK_H=70;
+let bigCursorStyle=null;
+
+function updateCursorMode(){
+  if(bigCursorStyle){bigCursorStyle.remove();bigCursorStyle=null;}
+  maskTop.style.display='none'; maskBot.style.display='none'; guide.style.display='none';
+  document.removeEventListener('mousemove',maskMove);
+  document.removeEventListener('mousemove',guideMove);
+  setBadge('badge-cursor',['Off','Cursor','Màscara','Guia'][state.cursor]);
+  setActive('btn-cursor',state.cursor>0);
+  if(state.cursor===1){
+    bigCursorStyle=document.createElement('style');
+    bigCursorStyle.textContent="* { cursor: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpolygon points='4,4 4,32 12,24 18,38 22,36 16,22 28,22' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E\") 4 4, auto !important; }";
+    document.head.appendChild(bigCursorStyle);
+  } else if(state.cursor===2){
+    maskTop.style.display='block'; maskBot.style.display='block';
+    maskTop.style.height='0px'; maskBot.style.height='100vh';
+    document.addEventListener('mousemove',maskMove);
+  } else if(state.cursor===3){
+    guide.style.display='block';
+    document.addEventListener('mousemove',guideMove);
+  }
+}
+function maskMove(e){ const y=e.clientY; maskTop.style.height=Math.max(0,y-MASK_H)+'px'; const bt=y+MASK_H; maskBot.style.top=bt+'px'; maskBot.style.height=(window.innerHeight-bt)+'px'; }
+function guideMove(e){ guide.style.top=e.clientY+'px'; }
+function cycleCursor(){ state.cursor=(state.cursor+1)%4; updateCursorMode(); }
+
+function resetAll(){
+  Object.assign(state,{dyslexia:false,textSize:0,spacing:0,lineHeight:0,align:0,contrast:0,saturation:0,links:false,images:false,animations:false,cursor:0});
+  setBadge('badge-dyslexia','Off');   setActive('btn-dyslexia',false);
+  setBadge('badge-textsize','0/5');   setActive('btn-textsize',false);
+  setBadge('badge-spacing','Off');    setActive('btn-spacing',false);
+  setBadge('badge-lineheight','Off'); setActive('btn-lineheight',false);
+  setBadge('badge-align','Off');      setActive('btn-align',false);
+  setBadge('badge-contrast','Off');   setActive('btn-contrast',false);
+  setBadge('badge-saturation','Off'); setActive('btn-saturation',false);
+  setBadge('badge-links','Off');      setActive('btn-links',false);
+  setBadge('badge-images','Off');     setActive('btn-images',false);
+  setBadge('badge-anim','Off');       setActive('btn-anim',false);
+  updateCursorMode();
+  applyStyles();
+  const btn=document.getElementById('big-reset-btn');
+  btn.classList.add('done');
+  btn.innerHTML='<span class="reset-icon">✓</span><span>Fet!</span>';
+  setTimeout(()=>{ btn.classList.remove('done'); btn.innerHTML='<span class="reset-icon">↺</span><span>Restablir</span>'; },1800);
+}
+</script>
+</body>
+</html>
