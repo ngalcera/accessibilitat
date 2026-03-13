@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giny d'Accessibilitat – BDNMaker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --accent: #34a853;
+    --bg: #ffffff;
+    --surface: #f8f9fa;
+    --border: #dadce0;
+    --text: #202124;
+    --text-muted: #5f6368;
+    --active-bg: #1a73e8;
+    --active-text: #ffffff;
+    --radius: 12px;
+    --btn-radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: transparent;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  /* ── Toggle Button ── */
+  #toggle-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    font-size: 26px;
+  }
+  #toggle-btn:hover { background: var(--primary-dark); transform: scale(1.08); }
+
+  /* ── Panel ── */
+  #a11y-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    z-index: 9998;
+    width: 320px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+    transform-origin: bottom right;
+  }
+  #a11y-panel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .panel-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-header .logo-icon { font-size: 22px; }
+  .panel-header h2 { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
+  .panel-header p { font-size: 11px; opacity: 0.85; margin-top: 1px; }
+
+  .reset-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .reset-btn:hover { background: rgba(255,255,255,0.35); }
+
+  /* ── Big Reset Button ── */
+  #big-reset-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-radius: var(--btn-radius);
+    border: 2px solid #d93025;
+    background: #fff0ef;
+    color: #d93025;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    transition: all 0.18s;
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  #big-reset-btn:hover {
+    background: #d93025;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(217,48,37,0.35);
+  }
+  #big-reset-btn:active { transform: translateY(0); }
+  #big-reset-btn.done {
+    background: #34a853;
+    border-color: #34a853;
+    color: #fff;
+  }
+  #big-reset-btn .reset-icon { font-size: 18px; transition: transform 0.4s; }
+  #big-reset-btn:hover .reset-icon { transform: rotate(-180deg); }
+
+  .panel-body {
+    padding: 12px 14px;
+    max-height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 4px 2px;
+    margin-top: 4px;
+  }
+
+  /* ── Generic Button ── */
+  .a11y-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 14px;
+    border-radius: var(--btn-radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-align: left;
+    color: var(--text);
+    user-select: none;
+  }
+  .a11y-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+  .a11y-btn.active {
+    background: var(--active-bg);
+    border-color: var(--active-bg);
+    color: var(--active-text);
+  }
+  .a11y-btn .btn-icon { font-size: 20px; flex-shrink: 0; width: 26px; text-align: center; }
+  .btn-text { flex: 1; }
+  .btn-label { font-size: 13px; font-weight: 700; line-height: 1.2; }
+  .btn-sublabel { font-size: 10px; opacity: 0.7; margin-top: 1px; }
+  .btn-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.08);
+    color: inherit;
+    flex-shrink: 0;
+  }
+  .a11y-btn.active .btn-badge { background: rgba(255,255,255,0.25); }
+
+  /* ── Multi-state buttons ── */
+  .multi-btn { cursor: pointer; }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<!-- Toggle Button -->
+<button id="toggle-btn" aria-label="Obre el giny d'accessibilitat" title="Accessibilitat">
+  🧏
+</button>
+
+<!-- Panel -->
+<div id="a11y-panel" role="dialog" aria-label="Opcions d'accessibilitat">
+  <div class="panel-header">
+    <span class="logo-icon">🧏</span>
+    <div>
+      <h2>Accessibilitat</h2>
+      <p>BDNMaker · Personalitza la lectura</p>
+    </div>
+    <button class="reset-btn" id="reset-all-btn" title="Restablir tot">↺ Restablir</button>
+  </div>
+
+  <div class="panel-body">
+
+    <!-- LECTURA -->
+    <div class="section-label">Lectura</div>
+
+    <button class="a11y-btn" id="btn-dyslexia" onclick="toggleDyslexia()">
+      <span class="btn-icon">🅰</span>
+      <div class="btn-text">
+        <div class="btn-label">Font per a dislèxia</div>
+        <div class="btn-sublabel">OpenDyslexic / Atkinson Hyperlegible</div>
+      </div>
+      <span class="btn-badge" id="badge-dyslexia">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-textsize" onclick="cycleTextSize()">
+      <span class="btn-icon">🔤</span>
+      <div class="btn-text">
+        <div class="btn-label">Mida del text</div>
+        <div class="btn-sublabel">5 nivells progressius</div>
+      </div>
+      <span class="btn-badge" id="badge-textsize">0/5</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-spacing" onclick="cycleSpacing()">
+      <span class="btn-icon">↔</span>
+      <div class="btn-text">
+        <div class="btn-label">Espaiat de text</div>
+        <div class="btn-sublabel">Lleuger · Moderat · Pesat</div>
+      </div>
+      <span class="btn-badge" id="badge-spacing">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-lineheight" onclick="cycleLineHeight()">
+      <span class="btn-icon">☰</span>
+      <div class="btn-text">
+        <div class="btn-label">Interlineat</div>
+        <div class="btn-sublabel">1.5 · 1.75 · 2.0</div>
+      </div>
+      <span class="btn-badge" id="badge-lineheight">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-align" onclick="cycleAlign()">
+      <span class="btn-icon">≡</span>
+      <div class="btn-text">
+        <div class="btn-label">Alineació del text</div>
+        <div class="btn-sublabel">Esquerra · Dreta · Centre · Just.</div>
+      </div>
+      <span class="btn-badge" id="badge-align">Off</span>
+    </button>
+
+    <hr class="divider">
+
+    <!-- VISUAL -->
+    <div class="section-label">Visual</div>
+
+    <button class="a11y-btn" id="btn-contrast" onclick="cycleContrast()">
+      <span class="btn-icon">◑</span>
+      <div class="btn-text">
+        <div class="btn-label">Contrast</div>
+        <div class="btn-sublabel">Invers · Fosc · Clar</div>
+      </div>
+      <span class="btn-badge" id="badge-contrast">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-saturation" onclick="cycleSaturation()">
+      <span class="btn-icon">🎨</span>
+      <div class="btn-text">
+        <div class="btn-label">Saturació</div>
+        <div class="btn-sublabel">Baixa · Alta · Dessaturar</div>
+      </div>
+      <span class="btn-badge" id="badge-saturation">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-links" onclick="toggleLinks()">
+      <span class="btn-icon">🔗</span>
+      <div class="btn-text">
+        <div class="btn-label">Realçar enllaços</div>
+        <div class="btn-sublabel">Destaca tots els hipervincles</div>
+      </div>
+      <span class="btn-badge" id="badge-links">Off</span>
+    </button>
+
+    <hr class="divider">
+
+    <!-- CONTINGUT -->
+    <div class="section-label">Contingut</div>
+
+    <button class="a11y-btn" id="btn-images" onclick="toggleImages()">
+      <span class="btn-icon">🖼</span>
+      <div class="btn-text">
+        <div class="btn-label">Ocultar imatges</div>
+        <div class="btn-sublabel">Millora la lectura amb assistents</div>
+      </div>
+      <span class="btn-badge" id="badge-images">Off</span>
+    </button>
+
+    <button class="a11y-btn" id="btn-anim" onclick="toggleAnimations()">
+      <span class="btn-icon">🎬</span>
+      <div class="btn-text">
+        <div class="btn-label">Aturar animacions</div>
+        <div class="btn-sublabel">Redueix distraccions visuals</div>
+      </div>
+      <span class="btn-badge" id="badge-anim">Off</span>
+    </button>
+
+    <hr class="divider">
+
+    <!-- NAVEGACIÓ -->
+    <div class="section-label">Navegació</div>
+
+    <button class="a11y-btn" id="btn-cursor" onclick="cycleCursor()">
+      <span class="btn-icon">🖱</span>
+      <div class="btn-text">
+        <div class="btn-label">Ajudes de navegació</div>
+        <div class="btn-sublabel">Cursor gran · Màscara · Guia</div>
+      </div>
+      <span class="btn-badge" id="badge-cursor">Off</span>
+    </button>
+
+    <hr class="divider">
+
+    <button id="big-reset-btn" onclick="resetAll()">
+      <span class="reset-icon">↺</span>
+      Restablir totes les opcions
+    </button>
+
+  </div>
+</div>
+
+<!-- Reading mask overlay -->
+<div id="reading-mask-top" style="display:none;position:fixed;top:0;left:0;width:100%;background:rgba(0,0,0,0.55);z-index:9990;pointer-events:none;"></div>
+<div id="reading-mask-bot" style="display:none;position:fixed;left:0;width:100%;background:rgba(0,0,0,0.55);z-index:9990;pointer-events:none;"></div>
+<!-- Reading guide line -->
+<div id="reading-guide" style="display:none;position:fixed;left:0;width:100%;height:3px;background:rgba(26,115,232,0.7);z-index:9991;pointer-events:none;box-shadow:0 0 8px rgba(26,115,232,0.5);"></div>
+
+<script>
+// ── State ──
+const state = {
+  dyslexia: false,
+  textSize: 0,       // 0-5
+  spacing: 0,        // 0-3 (off, lleuger, moderat, pesat)
+  lineHeight: 0,     // 0-3 (off, 1.5, 1.75, 2)
+  align: 0,          // 0-4 (off, left, right, center, justify)
+  contrast: 0,       // 0-3 (off, invert, dark, light)
+  saturation: 0,     // 0-3 (off, low, high, none)
+  links: false,
+  images: false,
+  animations: false,
+  cursor: 0,         // 0-3 (off, big cursor, mask, guide)
+};
+
+// ── Style injection ──
+const styleEl = document.createElement('style');
+document.head.appendChild(styleEl);
+
+function applyStyles() {
+  let css = '';
+
+  // Dyslexia font
+  if (state.dyslexia) {
+    css += `
+      @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+      body, * { font-family: 'Atkinson Hyperlegible', 'OpenDyslexic', Arial, sans-serif !important; }
+    `;
+  }
+
+  // Text size
+  const sizes = [0, 10, 20, 30, 40, 50];
+  if (state.textSize > 0) {
+    css += `body, p, span, li, td, th, div, a, h1, h2, h3, h4, h5, h6 { font-size: calc(1em + ${sizes[state.textSize]}%) !important; }`;
+  }
+
+  // Spacing (letter-spacing)
+  const spacings = [null, '0.05em', '0.1em', '0.18em'];
+  if (state.spacing > 0) {
+    css += `body, p, span, li, a, div { letter-spacing: ${spacings[state.spacing]} !important; word-spacing: calc(${spacings[state.spacing]} * 2) !important; }`;
+  }
+
+  // Line height
+  const lhs = [null, '1.5', '1.75', '2'];
+  if (state.lineHeight > 0) {
+    css += `body, p, span, li, a, div { line-height: ${lhs[state.lineHeight]} !important; }`;
+  }
+
+  // Alignment
+  const aligns = [null, 'left', 'right', 'center', 'justify'];
+  if (state.align > 0) {
+    css += `body, p, li, td, div { text-align: ${aligns[state.align]} !important; }`;
+  }
+
+  // Contrast
+  if (state.contrast === 1) { // invert
+    css += `html { filter: invert(1) hue-rotate(180deg) !important; } img, video { filter: invert(1) hue-rotate(180deg) !important; }`;
+  } else if (state.contrast === 2) { // dark
+    css += `html { filter: brightness(0.2) contrast(1.8) !important; }`;
+  } else if (state.contrast === 3) { // light / high contrast
+    css += `html { filter: brightness(1.15) contrast(1.5) !important; }`;
+  }
+
+  // Saturation
+  if (state.saturation === 1) { // low
+    css += `html { filter: ${state.contrast ? '' : ''}saturate(0.3) !important; }`;
+  } else if (state.saturation === 2) { // high
+    css += `html { filter: saturate(3) !important; }`;
+  } else if (state.saturation === 3) { // desaturate
+    css += `html { filter: grayscale(1) !important; }`;
+  }
+
+  // Combine contrast + saturation
+  if (state.contrast > 0 && state.saturation > 0) {
+    const satVals = ['', 'saturate(0.3)', 'saturate(3)', 'grayscale(1)'];
+    const contVals = ['', 'invert(1) hue-rotate(180deg)', 'brightness(0.2) contrast(1.8)', 'brightness(1.15) contrast(1.5)'];
+    css += `html { filter: ${contVals[state.contrast]} ${satVals[state.saturation]} !important; }`;
+    if (state.contrast === 1) {
+      css += `img, video { filter: invert(1) hue-rotate(180deg) !important; }`;
+    }
+  }
+
+  // Links
+  if (state.links) {
+    css += `
+      a { 
+        background: #ffeb3b !important; 
+        color: #000 !important; 
+        text-decoration: underline !important; 
+        outline: 2px solid #f57f17 !important;
+        padding: 1px 3px !important;
+        border-radius: 3px !important;
+      }
+    `;
+  }
+
+  // Images
+  if (state.images) {
+    css += `img, video, figure, [role="img"] { visibility: hidden !important; }`;
+  }
+
+  // Animations
+  if (state.animations) {
+    css += `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+  }
+
+  styleEl.textContent = css;
+}
+
+// ── Toggle Panel ──
+const panel = document.getElementById('a11y-panel');
+const toggleBtn = document.getElementById('toggle-btn');
+
+toggleBtn.addEventListener('click', () => {
+  panel.classList.toggle('open');
+  toggleBtn.setAttribute('aria-expanded', panel.classList.contains('open'));
+});
+
+// ── Helpers ──
+function setActive(btnId, active) {
+  document.getElementById(btnId).classList.toggle('active', active);
+}
+function setBadge(badgeId, text) {
+  document.getElementById(badgeId).textContent = text;
+}
+
+// ── Dyslexia ──
+function toggleDyslexia() {
+  state.dyslexia = !state.dyslexia;
+  setActive('btn-dyslexia', state.dyslexia);
+  setBadge('badge-dyslexia', state.dyslexia ? 'On' : 'Off');
+  applyStyles();
+}
+
+// ── Text Size ──
+function cycleTextSize() {
+  state.textSize = (state.textSize + 1) % 6;
+  const labels = ['0/5','1/5','2/5','3/5','4/5','5/5'];
+  setBadge('badge-textsize', labels[state.textSize]);
+  setActive('btn-textsize', state.textSize > 0);
+  applyStyles();
+}
+
+// ── Spacing ──
+function cycleSpacing() {
+  state.spacing = (state.spacing + 1) % 4;
+  const labels = ['Off', 'Lleuger', 'Moderat', 'Pesat'];
+  setBadge('badge-spacing', labels[state.spacing]);
+  setActive('btn-spacing', state.spacing > 0);
+  applyStyles();
+}
+
+// ── Line Height ──
+function cycleLineHeight() {
+  state.lineHeight = (state.lineHeight + 1) % 4;
+  const labels = ['Off', '1.5', '1.75', '2.0'];
+  setBadge('badge-lineheight', labels[state.lineHeight]);
+  setActive('btn-lineheight', state.lineHeight > 0);
+  applyStyles();
+}
+
+// ── Align ──
+function cycleAlign() {
+  state.align = (state.align + 1) % 5;
+  const labels = ['Off', 'Esquerra', 'Dreta', 'Centre', 'Justificat'];
+  const icons = ['Off', '⬅', '➡', '⬛', '☰'];
+  setBadge('badge-align', labels[state.align] !== 'Off' ? icons[state.align] + ' ' + labels[state.align] : 'Off');
+  setActive('btn-align', state.align > 0);
+  applyStyles();
+}
+
+// ── Contrast ──
+function cycleContrast() {
+  state.contrast = (state.contrast + 1) % 4;
+  const labels = ['Off', 'Invers', 'Fosc', 'Clar'];
+  setBadge('badge-contrast', labels[state.contrast]);
+  setActive('btn-contrast', state.contrast > 0);
+  applyStyles();
+}
+
+// ── Saturation ──
+function cycleSaturation() {
+  state.saturation = (state.saturation + 1) % 4;
+  const labels = ['Off', 'Baixa', 'Alta', 'Cap'];
+  setBadge('badge-saturation', labels[state.saturation]);
+  setActive('btn-saturation', state.saturation > 0);
+  applyStyles();
+}
+
+// ── Links ──
+function toggleLinks() {
+  state.links = !state.links;
+  setActive('btn-links', state.links);
+  setBadge('badge-links', state.links ? 'On' : 'Off');
+  applyStyles();
+}
+
+// ── Images ──
+function toggleImages() {
+  state.images = !state.images;
+  setActive('btn-images', state.images);
+  setBadge('badge-images', state.images ? 'On' : 'Off');
+  applyStyles();
+}
+
+// ── Animations ──
+function toggleAnimations() {
+  state.animations = !state.animations;
+  setActive('btn-anim', state.animations);
+  setBadge('badge-anim', state.animations ? 'On' : 'Off');
+  applyStyles();
+}
+
+// ── Cursor / Mask / Guide ──
+const maskTop = document.getElementById('reading-mask-top');
+const maskBot = document.getElementById('reading-mask-bot');
+const guide   = document.getElementById('reading-guide');
+const MASK_HEIGHT = 70;
+let bigCursorStyle = null;
+
+function updateCursorMode() {
+  // Clear all
+  document.body.style.cursor = '';
+  if (bigCursorStyle) { bigCursorStyle.remove(); bigCursorStyle = null; }
+  maskTop.style.display = 'none';
+  maskBot.style.display = 'none';
+  guide.style.display = 'none';
+  document.removeEventListener('mousemove', maskMove);
+  document.removeEventListener('mousemove', guideMove);
+
+  const labels = ['Off', 'Cursor gran', 'Màscara', 'Guia'];
+  setBadge('badge-cursor', labels[state.cursor]);
+  setActive('btn-cursor', state.cursor > 0);
+
+  if (state.cursor === 1) {
+    // Big cursor via CSS
+    bigCursorStyle = document.createElement('style');
+    bigCursorStyle.textContent = `* { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpolygon points='4,4 4,32 12,24 18,38 22,36 16,22 28,22' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 4 4, auto !important; }`;
+    document.head.appendChild(bigCursorStyle);
+
+  } else if (state.cursor === 2) {
+    // Reading mask
+    maskTop.style.display = 'block';
+    maskBot.style.display = 'block';
+    maskTop.style.height = '0px';
+    maskBot.style.height = '100vh';
+    document.addEventListener('mousemove', maskMove);
+
+  } else if (state.cursor === 3) {
+    // Reading guide line
+    guide.style.display = 'block';
+    document.addEventListener('mousemove', guideMove);
+  }
+}
+
+function maskMove(e) {
+  const y = e.clientY;
+  maskTop.style.height = Math.max(0, y - MASK_HEIGHT) + 'px';
+  const botTop = y + MASK_HEIGHT;
+  maskBot.style.top = botTop + 'px';
+  maskBot.style.height = (window.innerHeight - botTop) + 'px';
+}
+
+function guideMove(e) {
+  guide.style.top = e.clientY + 'px';
+}
+
+function cycleCursor() {
+  state.cursor = (state.cursor + 1) % 4;
+  updateCursorMode();
+}
+
+// ── Reset All ──
+function resetAll() {
+  Object.assign(state, {
+    dyslexia: false, textSize: 0, spacing: 0, lineHeight: 0, align: 0,
+    contrast: 0, saturation: 0, links: false, images: false, animations: false, cursor: 0
+  });
+  setBadge('badge-dyslexia','Off');    setActive('btn-dyslexia',false);
+  setBadge('badge-textsize','0/5');    setActive('btn-textsize',false);
+  setBadge('badge-spacing','Off');     setActive('btn-spacing',false);
+  setBadge('badge-lineheight','Off');  setActive('btn-lineheight',false);
+  setBadge('badge-align','Off');       setActive('btn-align',false);
+  setBadge('badge-contrast','Off');    setActive('btn-contrast',false);
+  setBadge('badge-saturation','Off');  setActive('btn-saturation',false);
+  setBadge('badge-links','Off');       setActive('btn-links',false);
+  setBadge('badge-images','Off');      setActive('btn-images',false);
+  setBadge('badge-anim','Off');        setActive('btn-anim',false);
+  updateCursorMode(); // cursor already 0, clears overlays
+  applyStyles();
+
+  // Visual confirmation on the big button
+  const btn = document.getElementById('big-reset-btn');
+  btn.classList.add('done');
+  btn.innerHTML = '<span class="reset-icon">✓</span> Tot restablert!';
+  setTimeout(() => {
+    btn.classList.remove('done');
+    btn.innerHTML = '<span class="reset-icon">↺</span> Restablir totes les opcions';
+  }, 1800);
+}
+
+document.getElementById('reset-all-btn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>
